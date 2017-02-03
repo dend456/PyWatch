@@ -1,0 +1,229 @@
+#! /usr/bin/env python3.6
+
+import sys
+import os.path
+import vlc
+from PyQt4 import QtGui, QtCore
+from controlsdialog import Ui_ControlsDialog
+from guide import Guide
+
+
+class VideoPlayer:
+    def __init__(self, instance, media_player, palette, videoframe):
+        self.instance = instance
+        self.media_player = media_player
+        self.media = None
+        self.palette = palette
+        self.videoframe = videoframe
+        self.paused = False
+
+    def pause(self, p):
+        self.paused = p
+        self.media_player.set_pause(p)
+
+
+class ControlsDialog(QtGui.QDialog):
+    def __init__(self, video_player, controls):
+        QtGui.QDialog.__init__(self)
+        self.timer = None
+        self.video_player = video_player
+        self.controls = controls
+        self.guide = Guide()
+        self.setup_ui()
+        self.setFixedSize(self.size())
+
+    def setup_ui(self):
+        self.controls.setupUi(self)
+        self.controls.host_box.addItems(self.guide.plugin_names)
+        if self.guide.selected_plugin:
+            self.controls.type_box.addItems(self.guide.get_categories())
+
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(200)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update_ui)
+        self.timer.start()
+
+    def replay_button_clicked(self):
+        self.video_player.media.parse()
+        self.play(self.video_player.media.get_meta(0))
+        self.video_player.pause(False)
+
+    def next_episode_button_clicked(self):
+        next_index = self.controls.episode_box.currentIndex() + 1
+        self.controls.episode_box.setCurrentIndex(next_index)
+        index = self.controls.episode_box.currentIndex()
+        if index == next_index:
+            self.play_episode_clicked()
+            self.video_player.pause(False)
+
+    def prev_episode_button_clicked(self):
+        next_index = self.controls.episode_box.currentIndex() - 1
+        if next_index >= 0:
+            self.controls.episode_box.setCurrentIndex(next_index)
+            index = self.controls.episode_box.currentIndex()
+            if index == next_index:
+                self.play_episode_clicked()
+                self.video_player.pause(False)
+
+    def toggle_pause_clicked(self):
+        self.video_player.pause(not self.video_player.paused)
+
+    def small_jump_forwards_clicked(self):
+        self.video_player.media_player.set_time(self.video_player.media_player.get_time() + 5000)
+
+    def small_jump_backwards_clicked(self):
+        self.video_player.media_player.set_time(self.video_player.media_player.get_time() - 5000)
+
+    def large_jump_forwards_clicked(self):
+        self.video_player.media_player.set_time(self.video_player.media_player.get_time() + 30000)
+
+    def large_jump_backwards_clicked(self):
+        self.video_player.media_player.set_time(self.video_player.media_player.get_time() - 30000)
+
+    def filter_changed(self):
+        self.guide.filter = self.controls.filter_box.text()
+        self.controls.series_box.clear()
+        self.controls.series_box.addItems(self.guide.get_series())
+
+    def volume_changed(self, vol):
+        self.video_player.media_player.audio_set_volume(vol)
+
+    def speed_changed(self, speed):
+        speed = (speed / 100) * 2
+        self.video_player.media_player.set_rate(speed)
+        self.controls.speed_label.setText(str(int(speed * 100)) + '%')
+
+    def toggle_fullscreen(self):
+        win = self.video_player.videoframe.window()
+        win.setWindowState(win.windowState() ^ QtCore.Qt.WindowFullScreen)
+
+    def play_episode_clicked(self):
+        url = self.guide.get_selected_url()
+        if url:
+            self.play(url)
+            self.video_player.pause(False)
+
+    def host_box_changed(self, index):
+        self.guide.selected_plugin = index
+        self.controls.series_box.clear()
+        self.controls.series_box.addItems(self.guide.get_series())
+
+    def series_box_changed(self, series):
+        self.guide.selected_series = series
+        self.controls.episode_box.clear()
+        self.controls.episode_box.addItems(self.guide.get_episodes())
+
+    def episode_box_changed(self, episode):
+        self.guide.selected_episode = episode
+
+    def type_box_changed(self, cat):
+        self.guide.selected_category = cat
+        self.controls.series_box.clear()
+        self.controls.series_box.addItems(self.guide.get_series())
+
+    def time_slider_pressed(self):
+        self.video_player.pause(True)
+
+    def time_slider_released(self):
+        self.video_player.media_player.set_position(self.controls.time_slider.value() / 10000)
+        self.video_player.pause(False)
+
+    def update_time_label(self, value):
+        length = self.video_player.media_player.get_length()
+        percent = (value / 10000)
+        pos = length * percent
+        total_min = int(length / 60000.0)
+        total_sec = int(length / 1000.0 % 60.0)
+        cur_min = int(pos / 60000.0)
+        cur_sec = int(pos / 1000.0 % 60.0)
+        time = '{:02}:{:02} / {:02}:{:02}'.format(cur_min, cur_sec, total_min, total_sec)
+        self.controls.time_label.setText(time)
+
+    def time_slider_moved(self, value):
+        self.update_time_label(value)
+
+    def play(self, url):
+        self.video_player.media = self.video_player.instance.media_new(url, 'network-cache=1500000', 'file-cache=1500000')
+        self.video_player.media_player.set_media(self.video_player.media)
+        self.video_player.videoframe.window().setWindowTitle(self.guide.selected_episode)
+        self.video_player.media_player.play()
+
+        print(f'Playing {url}')
+
+        if sys.platform == "linux2":
+            self.video_player.media_player.set_xwindow(self.video_player.videoframe.winId())
+        elif sys.platform == "win32":
+            self.video_player.media_player.set_hwnd(self.video_player.videoframe.winId())
+        elif sys.platform == "darwin":
+            self.video_player.media_player.set_agl(self.video_player.videoframe.windId())
+
+    def update_ui(self):
+        if not self.video_player.paused and self.video_player.media_player.is_playing():
+            val = self.video_player.media_player.get_position() * 10000
+            self.controls.time_slider.setValue(val)
+            self.update_time_label(val)
+
+        if self.video_player.media_player.get_state() == vlc.State.Ended:
+            self.next_episode_button_clicked()
+
+
+class Watcher(QtGui.QMainWindow):
+    def __init__(self, master=None):
+        QtGui.QMainWindow.__init__(self, master)
+        self.widget = None
+        self.vboxlayout = None
+        self.controls_dialog = None
+        self.controls = None
+        self.video_player = None
+
+        self.setup_ui()
+        self.setup_control_window()
+        self.controls_dialog.show()
+        self.is_paused = False
+
+    def setup_control_window(self):
+        self.controls = Ui_ControlsDialog()
+        self.controls_dialog = ControlsDialog(self.video_player, self.controls)
+        self.controls_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowMinimizeButtonHint)
+
+    def setup_ui(self):
+        self.setWindowTitle("PyWatch")
+        instance = vlc.Instance()
+        media_player = instance.media_player_new()
+        self.widget = QtGui.QWidget(self)
+        self.setCentralWidget(self.widget)
+
+        if sys.platform == "darwin":
+            videoframe = QtGui.QMacCocoaViewContainer(0)
+        else:
+            videoframe = QtGui.QFrame()
+
+        palette = videoframe.palette()
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 0))
+        videoframe.setPalette(palette)
+        videoframe.setAutoFillBackground(True)
+
+        self.vboxlayout = QtGui.QVBoxLayout()
+        self.vboxlayout.setMargin(0)
+        self.vboxlayout.addWidget(videoframe)
+
+        self.widget.setLayout(self.vboxlayout)
+        self.video_player = VideoPlayer(instance, media_player, palette, videoframe)
+
+        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Escape), self), QtCore.SIGNAL('activated()'), self.disable_fullscreen)
+
+    def disable_fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+
+    def closeEvent(self, event):
+            QtGui.QApplication.closeAllWindows()
+            event.accept()
+
+
+if __name__ == "__main__":
+    app = QtGui.QApplication(sys.argv)
+    w = Watcher()
+    w.resize(800, 600)
+    w.show()
+    sys.exit(app.exec_())
