@@ -20,6 +20,7 @@ series = {c: [] for c in categories}
 episode_cache = {c: dict() for c in categories}
 episode_re = re.compile('file: "(?P<url>.*)"')
 episode_loader_re = re.compile(r'#load"\).load\(\'(?P<url>\/ep\.php\?a=.+&id=.+)\'')
+loaded = False
 
 
 def get_series_from_url(url):
@@ -37,10 +38,10 @@ def get_series_from_url(url):
 
 
 def get_movies(series_name):
-    pass
+    return []
 
 
-def get_series_episodes(category, series_name):
+def get_dubbed(category, series_name):
     series_cache = episode_cache.get(category, None)
     if series_cache is not None:
         episodes = series_cache.get(series_name, None)
@@ -71,6 +72,14 @@ def get_series_episodes(category, series_name):
     return episodes
 
 
+def get_series_episodes(category, series_name):
+    if category == 'Movies':
+        return get_movies(series_name)
+    elif category == 'Dubbed':
+        return get_dubbed(category, series_name)
+    return []
+
+
 def get_video_url(category, series_name, episode_title):
     link = None
     for l in episode_cache[category][series_name]:
@@ -97,11 +106,12 @@ def get_video_url(category, series_name, episode_title):
 
 
 def load():
-    global cookies, headers
+    global cookies, headers, loaded
     cookies, user_agent = cfscrape.get_tokens(urls['base'])
     headers = {'User-Agent': user_agent}
     series['Dubbed'] = get_series_from_url(urls['Dubbed'])
     series['Movies'] = ('Movies', urls['Movies'])
+    loaded = True
 
 if __name__ == '__main__':
     load()

@@ -17,6 +17,7 @@ urls = {'Dubbed': 'https://www.watchcartoononline.io/dubbed-anime-list',
 series = {c: [] for c in categories}
 episode_cache = {c: dict() for c in categories}
 episode_re = re.compile('file: "(?P<url>.*)"')
+loaded = False
 
 
 def get_series_from_url(url):
@@ -34,10 +35,10 @@ def get_series_from_url(url):
 
 
 def get_movies_or_ovas(category, series_name):
-    pass
+    return []
 
 
-def get_series_episodes(category, series_name):
+def get_dubbed_subbed_cartoon(category, series_name):
     series_cache = episode_cache.get(category, None)
     if series_cache is not None:
         episodes = series_cache.get(series_name, None)
@@ -62,6 +63,14 @@ def get_series_episodes(category, series_name):
             series_cache[series_name] = episodes
             return episodes
     return episodes
+
+
+def get_series_episodes(category, series_name):
+    if category in ['Movies', 'OVA']:
+        return get_movies_or_ovas(category, series_name)
+    elif category in ['Dubbed', 'Subbed', 'Cartoon']:
+        return get_dubbed_subbed_cartoon(category, series_name)
+    return []
 
 
 def find_best_quality(urls):
@@ -106,11 +115,13 @@ def get_video_url(category, series_name, episode_title):
 
 
 def load():
+    global loaded
     series['Dubbed'] = get_series_from_url(urls['Dubbed'])
     series['Subbed'] = get_series_from_url(urls['Subbed'])
     series['Cartoon'] = get_series_from_url(urls['Cartoon'])
     series['Movies'] = ('Movies', urls['Movies'])
     series['OVA'] = ('OVA', urls['OVA'])
+    loaded = True
 
 if __name__ == '__main__':
     load()

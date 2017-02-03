@@ -67,7 +67,7 @@ def get_series_episodes(category, series_name):
         return get_movies(series_name)
     elif category == 'Videos':
         return get_videos(category, series_name)
-    return None
+    return []
 
 
 def get_video_url(category, series_name, episode_title):
