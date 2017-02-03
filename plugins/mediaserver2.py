@@ -3,7 +3,7 @@
 import bs4
 import requests
 
-display_name = 'Media Server'
+display_name = 'Media Server2'
 categories = ['Videos', 'Movies']
 selector = 'body > ul > li > a'
 

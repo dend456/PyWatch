@@ -27,7 +27,9 @@ class Guide:
     @selected_plugin.setter
     def selected_plugin(self, host):
         if isinstance(host, int):
-            self.selected_plugin = self.plugins[host]
+            self._selected_plugin = self.plugins[host]
+            if not self._selected_plugin.loaded:
+                self._selected_plugin.load()
 
     @property
     def selected_series(self):
