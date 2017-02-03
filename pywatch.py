@@ -105,6 +105,8 @@ class ControlsDialog(QtGui.QDialog):
 
     def host_box_changed(self, index):
         self.guide.selected_plugin = index
+        self.controls.type_box.clear()
+        self.controls.type_box.addItems(self.guide.get_categories())
         self.controls.series_box.clear()
         self.controls.series_box.addItems(self.guide.get_series())
 
@@ -117,9 +119,10 @@ class ControlsDialog(QtGui.QDialog):
         self.guide.selected_episode = episode
 
     def type_box_changed(self, cat):
-        self.guide.selected_category = cat
-        self.controls.series_box.clear()
-        self.controls.series_box.addItems(self.guide.get_series())
+        if cat != '':
+            self.guide.selected_category = cat
+            self.controls.series_box.clear()
+            self.controls.series_box.addItems(self.guide.get_series())
 
     def time_slider_pressed(self):
         self.video_player.pause(True)

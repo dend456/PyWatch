@@ -31,10 +31,10 @@ def get_series_from_url(url):
 
 
 def get_movies(series_name):
-    pass
+    return []
 
 
-def get_series_episodes(category, series_name):
+def get_videos(category, series_name):
     series_cache = episode_cache.get(category, None)
     if series_cache is not None:
         episodes = series_cache.get(series_name, None)
@@ -53,11 +53,20 @@ def get_series_episodes(category, series_name):
                 soup = bs4.BeautifulSoup(res.text, 'lxml')
                 nodes = soup.select(selector)
                 for node in nodes:
-                    episodes.append((node.contents[0], urls['video_format'].format(series_name, node['href']).replace(' ', '%20')))
-                #episodes.reverse()
+                    episodes.append(
+                        (node.contents[0], urls['video_format'].format(series_name, node['href']).replace(' ', '%20')))
+                # episodes.reverse()
                 series_cache[series_name] = episodes
                 return episodes
     return episodes
+
+
+def get_series_episodes(category, series_name):
+    if category == 'Movies':
+        return get_movies(series_name)
+    elif category == 'Videos':
+        return get_videos(category, series_name)
+    return None
 
 
 def get_video_url(category, series_name, episode_title):
