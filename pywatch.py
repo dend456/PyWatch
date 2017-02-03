@@ -36,6 +36,7 @@ class ControlsDialog(QtGui.QDialog):
         self.controls.setupUi(self)
         self.controls.host_box.addItems(self.guide.plugin_names)
         if self.guide.selected_plugin:
+            self.controls.type_box.clear()
             self.controls.type_box.addItems(self.guide.get_categories())
 
         self.timer = QtCore.QTimer(self)
