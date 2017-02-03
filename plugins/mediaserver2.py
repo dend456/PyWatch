@@ -17,6 +17,7 @@ series = {c: [] for c in categories}
 episode_cache = {c: dict() for c in categories}
 loaded = False
 
+
 def get_series_from_url(url):
     s = []
     res = requests.get(url)
