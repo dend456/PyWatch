@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>868</width>
+    <width>929</width>
     <height>146</height>
    </rect>
   </property>
@@ -21,8 +21,8 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>844</width>
-     <height>129</height>
+     <width>908</width>
+     <height>138</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -36,7 +36,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QSlider" name="horizontalSlider_3">
+       <widget class="QSlider" name="volume_slider">
         <property name="minimumSize">
          <size>
           <width>50</width>
@@ -130,7 +130,20 @@
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0" rowspan="2">
+        <item row="1" column="1">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0" rowspan="3">
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
            <spacer name="verticalSpacer_4">
@@ -288,7 +301,7 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="1">
+        <item row="3" column="1">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QLabel" name="label">
@@ -298,7 +311,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="horizontalSlider_2">
+           <widget class="QSlider" name="speed_slider">
             <property name="minimumSize">
              <size>
               <width>75</width>
@@ -346,24 +359,51 @@
           </item>
          </layout>
         </item>
-        <item row="0" column="1">
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
+        <item row="2" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Remote</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="remote_box"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_11">
+            <property name="maximumSize">
+             <size>
+              <width>25</width>
+              <height>25</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>↻</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
-      <item row="0" column="1">
+      <item row="0" column="2">
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
+        <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <spacer name="verticalSpacer_3">
@@ -474,7 +514,7 @@
           </item>
          </layout>
         </item>
-        <item row="0" column="2">
+        <item row="0" column="1">
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
            <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -648,20 +688,20 @@
           </item>
          </layout>
         </item>
-        <item row="0" column="0">
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
+      </item>
+      <item row="0" column="1">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
      </layout>
     </item>
@@ -693,8 +733,8 @@
    <slot>next_episode_button_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>108</x>
-     <y>84</y>
+     <x>122</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel">
      <x>113</x>
@@ -709,8 +749,8 @@
    <slot>prev_episode_button_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>39</x>
-     <y>84</y>
+     <x>46</x>
+     <y>109</y>
     </hint>
     <hint type="destinationlabel">
      <x>14</x>
@@ -725,8 +765,8 @@
    <slot>play_episode_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>834</x>
-     <y>124</y>
+     <x>912</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel">
      <x>784</x>
@@ -741,8 +781,8 @@
    <slot>toggle_pause_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>26</x>
-     <y>24</y>
+     <x>123</x>
+     <y>26</y>
     </hint>
     <hint type="destinationlabel">
      <x>34</x>
@@ -757,8 +797,8 @@
    <slot>host_box_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>598</x>
-     <y>59</y>
+     <x>878</x>
+     <y>85</y>
     </hint>
     <hint type="destinationlabel">
      <x>598</x>
@@ -799,14 +839,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_2</sender>
+   <sender>speed_slider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>ControlsDialog</receiver>
    <slot>speed_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>212</x>
-     <y>121</y>
+     <x>252</x>
+     <y>143</y>
     </hint>
     <hint type="destinationlabel">
      <x>216</x>
@@ -815,14 +855,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>horizontalSlider_3</sender>
+   <sender>volume_slider</sender>
    <signal>sliderMoved(int)</signal>
    <receiver>ControlsDialog</receiver>
    <slot>volume_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>104</x>
-     <y>30</y>
+     <x>100</x>
+     <y>33</y>
     </hint>
     <hint type="destinationlabel">
      <x>100</x>
@@ -837,8 +877,8 @@
    <slot>toggle_fullscreen()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>834</x>
-     <y>30</y>
+     <x>915</x>
+     <y>32</y>
     </hint>
     <hint type="destinationlabel">
      <x>834</x>
@@ -853,8 +893,8 @@
    <slot>type_box_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>420</x>
-     <y>123</y>
+     <x>523</x>
+     <y>141</y>
     </hint>
     <hint type="destinationlabel">
      <x>418</x>
@@ -869,8 +909,8 @@
    <slot>large_jump_forwards_clicked()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>126</x>
-     <y>117</y>
+     <x>132</x>
+     <y>142</y>
     </hint>
     <hint type="destinationlabel">
      <x>145</x>
@@ -933,8 +973,8 @@
    <slot>filter_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>371</x>
-     <y>89</y>
+     <x>492</x>
+     <y>110</y>
     </hint>
     <hint type="destinationlabel">
      <x>372</x>
@@ -981,12 +1021,12 @@
    <slot>clear()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>451</x>
-     <y>87</y>
+     <x>523</x>
+     <y>113</y>
     </hint>
     <hint type="destinationlabel">
-     <x>408</x>
-     <y>87</y>
+     <x>492</x>
+     <y>110</y>
     </hint>
    </hints>
   </connection>
@@ -1013,12 +1053,44 @@
    <slot>filter_changed()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>447</x>
-     <y>95</y>
+     <x>523</x>
+     <y>113</y>
     </hint>
     <hint type="destinationlabel">
      <x>468</x>
      <y>76</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>remote_box</sender>
+   <signal>currentIndexChanged(QString)</signal>
+   <receiver>ControlsDialog</receiver>
+   <slot>remote_box_changed()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>232</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>243</x>
+     <y>62</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_11</sender>
+   <signal>clicked()</signal>
+   <receiver>ControlsDialog</receiver>
+   <slot>remote_refresh_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>282</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>94</y>
     </hint>
    </hints>
   </connection>
@@ -1046,5 +1118,7 @@
   <slot>time_slider_pressed()</slot>
   <slot>time_slider_released()</slot>
   <slot>time_slider_moved()</slot>
+  <slot>remote_box_changed()</slot>
+  <slot>remote_refresh_clicked()</slot>
  </slots>
 </ui>

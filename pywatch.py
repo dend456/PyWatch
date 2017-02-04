@@ -6,7 +6,7 @@ import vlc
 from PyQt4 import QtGui, QtCore
 from controlsdialog import Ui_ControlsDialog
 from guide import Guide
-
+from remote import SerialRemote
 
 class VideoPlayer:
     def __init__(self, instance, media_player, palette, videoframe):
@@ -30,7 +30,21 @@ class ControlsDialog(QtGui.QDialog):
         self.controls = controls
         self.guide = Guide()
         self.setup_ui()
+        self.prev_volume = 100
+        self.muted = False
+        self.remote_vals = self.load_remote_vals()
+        self.remote = None
+        self.remote_refresh_clicked()
         self.setFixedSize(self.size())
+
+    def load_remote_vals(self):
+        vals = {}
+        with open('remote.txt', 'r') as f:
+            for line in f:
+                if line:
+                    l = line.rstrip().split(' ')
+                    vals[l[0]] = l[1]
+        return vals
 
     def setup_ui(self):
         self.controls.setupUi(self)
@@ -43,6 +57,65 @@ class ControlsDialog(QtGui.QDialog):
         self.timer.setInterval(200)
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update_ui)
         self.timer.start()
+
+    def remote_refresh_clicked(self):
+        open_ports = [''] + SerialRemote.open_ports()
+        self.controls.remote_box.clear()
+        self.controls.remote_box.addItems(open_ports)
+
+    def remote_box_changed(self, port):
+        if self.remote:
+            self.remote.stop()
+            self.remote = None
+
+        if port:
+            self.remote = SerialRemote(port)
+            self.remote.add(self.remote_vals['CH-'], self.prev_episode_button_clicked)
+            self.remote.add(self.remote_vals['CH'], self.replay_button_clicked)
+            self.remote.add(self.remote_vals['CH+'], self.next_episode_button_clicked)
+            self.remote.add(self.remote_vals['VOL-'], self.volume_down)
+            self.remote.add(self.remote_vals['VOL+'], self.volume_up)
+            self.remote.add(self.remote_vals['EQ'], self.toggle_mute)
+            self.remote.add(self.remote_vals['PLAY'], self.toggle_pause_clicked)
+            self.remote.add(self.remote_vals['100+'], self.large_jump_backwards_clicked)
+            self.remote.add(self.remote_vals['2'], self.small_jump_backwards_clicked)
+            self.remote.add(self.remote_vals['200+'], self.large_jump_forwards_clicked)
+            self.remote.add(self.remote_vals['3'], self.small_jump_forwards_clicked)
+            self.remote.add(self.remote_vals['PREV'], self.decrease_speed)
+            self.remote.add(self.remote_vals['NEXT'], self.increase_speed)
+            self.remote.daemon = True
+            self.remote.start()
+
+    def decrease_speed(self):
+        self.controls.speed_slider.setValue(self.controls.speed_slider.value() - 1)
+        self.speed_changed(self.controls.speed_slider.value())
+
+    def increase_speed(self):
+        self.controls.speed_slider.setValue(self.controls.speed_slider.value() + 1)
+        self.speed_changed(self.controls.speed_slider.value())
+
+    def volume_down(self):
+        self.controls.volume_slider.setValue(self.controls.volume_slider.value() - 10)
+        self.prev_volume = self.controls.volume_slider.value()
+        self.volume_changed(self.prev_volume)
+        self.muted = False
+
+    def volume_up(self):
+        self.controls.volume_slider.setValue(self.controls.volume_slider.value() + 10)
+        self.prev_volume = self.controls.volume_slider.value()
+        self.volume_changed(self.prev_volume)
+        self.muted = False
+
+    def toggle_mute(self):
+        if self.muted:
+            self.controls.volume_slider.setValue(self.prev_volume)
+            self.volume_changed(self.prev_volume)
+            self.muted = False
+        else:
+            self.prev_volume = self.controls.volume_slider.value()
+            self.controls.volume_slider.setValue(0)
+            self.volume_changed(0)
+            self.muted = True
 
     def replay_button_clicked(self):
         self.video_player.media.parse()
