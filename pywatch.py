@@ -8,6 +8,7 @@ from controlsdialog import Ui_ControlsDialog
 from guide import Guide
 from remote import SerialRemote
 
+
 class VideoPlayer:
     def __init__(self, instance, media_player, palette, videoframe):
         self.instance = instance
@@ -241,7 +242,13 @@ class ControlsDialog(QtGui.QDialog):
             self.update_time_label(val)
 
         if self.video_player.media_player.get_state() == vlc.State.Ended:
-            self.next_episode_button_clicked()
+            cur = self.video_player.media_player.get_position()
+            if cur < .99:
+                print(f'Error at {cur*100}%, replaying', file=sys.stderr)
+                self.replay_button_clicked()
+                self.video_player.media_player.set_position(cur)
+            else:
+                self.next_episode_button_clicked()
 
 
 class Watcher(QtGui.QMainWindow):
@@ -298,9 +305,12 @@ class Watcher(QtGui.QMainWindow):
             event.accept()
 
 
-if __name__ == "__main__":
+def main():
     app = QtGui.QApplication(sys.argv)
     w = Watcher()
     w.resize(800, 600)
     w.show()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
