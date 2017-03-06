@@ -1,1 +1,1 @@
-start py pywatch.py
+start pyw pywatch.py
