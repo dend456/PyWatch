@@ -17,6 +17,7 @@ class VideoPlayer:
         self.palette = palette
         self.videoframe = videoframe
         self.paused = False
+        self.current_url = None
 
     def pause(self, p):
         self.paused = p
@@ -119,9 +120,10 @@ class ControlsDialog(QtGui.QDialog):
             self.muted = True
 
     def replay_button_clicked(self):
-        self.video_player.media.parse()
-        self.play(self.video_player.media.get_meta(0))
-        self.video_player.pause(False)
+        if self.video_player.current_url:
+            self.video_player.media.parse()
+            self.play(self.video_player.current_url)
+            self.video_player.pause(False)
 
     def next_episode_button_clicked(self):
         next_index = self.controls.episode_box.currentIndex() + 1
@@ -225,6 +227,7 @@ class ControlsDialog(QtGui.QDialog):
         self.video_player.media_player.set_media(self.video_player.media)
         self.video_player.videoframe.window().setWindowTitle(self.guide.selected_episode)
         self.video_player.media_player.play()
+        self.video_player.current_url = url
 
         print(f'Playing {url}')
 
