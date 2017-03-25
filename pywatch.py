@@ -46,6 +46,10 @@ class ControlsDialog(QtGui.QDialog):
                 if line:
                     l = line.rstrip().split(' ')
                     vals[l[0]] = l[1]
+
+        for k, v in vals.items():
+            SerialRemote.values[v] = k
+
         return vals
 
     def setup_ui(self):
@@ -72,20 +76,23 @@ class ControlsDialog(QtGui.QDialog):
 
         if port:
             self.remote = SerialRemote(port)
-            self.remote.add(self.remote_vals['CH-'], self.prev_episode_button_clicked)
-            self.remote.add(self.remote_vals['CH'], self.replay_button_clicked)
-            self.remote.add(self.remote_vals['CH+'], self.next_episode_button_clicked)
-            self.remote.add(self.remote_vals['VOL-'], self.volume_down)
-            self.remote.add(self.remote_vals['VOL+'], self.volume_up)
-            self.remote.add(self.remote_vals['EQ'], self.toggle_mute)
-            self.remote.add(self.remote_vals['PLAY'], self.toggle_pause_clicked)
-            self.remote.add(self.remote_vals['100+'], self.large_jump_backwards_clicked)
-            self.remote.add(self.remote_vals['2'], self.small_jump_backwards_clicked)
-            self.remote.add(self.remote_vals['200+'], self.large_jump_forwards_clicked)
-            self.remote.add(self.remote_vals['3'], self.small_jump_forwards_clicked)
-            self.remote.add(self.remote_vals['PREV'], self.decrease_speed)
-            self.remote.add(self.remote_vals['NEXT'], self.increase_speed)
-            self.remote.daemon = True
+
+            self.remote.signal_chmin.connect(self.prev_episode_button_clicked)
+            self.remote.signal_ch.connect(self.replay_button_clicked)
+            self.remote.signal_chplus.connect(self.next_episode_button_clicked)
+
+            self.remote.signal_volmin.connect(self.volume_down)
+            self.remote.signal_volplus.connect(self.volume_up)
+            self.remote.signal_eq.connect(self.toggle_mute)
+
+            self.remote.signal_play.connect(self.toggle_pause_clicked)
+            self.remote.signal_100.connect(self.large_jump_backwards_clicked)
+            self.remote.signal_2.connect(self.small_jump_backwards_clicked)
+            self.remote.signal_200.connect(self.large_jump_forwards_clicked)
+            self.remote.signal_3.connect(self.small_jump_forwards_clicked)
+            self.remote.signal_prev.connect(self.decrease_speed)
+            self.remote.signal_next.connect(self.increase_speed)
+
             self.remote.start()
 
     def decrease_speed(self):
