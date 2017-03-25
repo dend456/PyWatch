@@ -72,6 +72,7 @@ class ControlsDialog(QtGui.QDialog):
     def remote_box_changed(self, port):
         if self.remote:
             self.remote.stop()
+            self.remote.wait()
             self.remote = None
 
         if port:
