@@ -1,0 +1,12 @@
+appdirs==1.4.3
+beautifulsoup4==4.5.3
+bs4==0.0.1
+cfscrape==1.8.0
+lxml==3.7.3
+packaging==16.8
+PyExecJS==1.4.0
+pyparsing==2.2.0
+PyQt4==4.11.4
+pyserial==3.3
+requests==2.13.0
+six==1.10.0
