@@ -2,12 +2,13 @@
 import bs4
 import requests
 import re
-
+import json
+import base64
 
 display_name = 'Watch Cartoon Online'
 categories = ['Dubbed', 'Subbed', 'Cartoon', 'OVA', 'Movies']
 series_selector = '#ddmcc_container > div > ul > ul > li > a'
-
+base_url = 'https://www.watchcartoononline.io'
 urls = {'Dubbed': 'https://www.watchcartoononline.io/dubbed-anime-list',
         'Subbed': 'https://www.watchcartoononline.io/subbed-anime-list',
         'Cartoon': 'https://www.watchcartoononline.io/cartoon-list',
@@ -95,23 +96,32 @@ def get_video_url(category, series_name, episode_title):
     res = requests.get(link)
     if res:
         soup = bs4.BeautifulSoup(res.text, 'lxml')
-        iframes = soup.select('iframe')
-        frame_url = None
-        for frame in iframes:
-            if frame.has_attr('id') and frame['id'].startswith('frame'):
-                frame_url = frame['src']
-                break
+        scripts = soup.select('script')
+        reg = re.compile(r'var [a-zA-Z]+ = ""')
+        video_urls = []
+        for s in scripts:
+            if len(s.attrs) == 0:
+                stmts = s.text.split(';')
+                if reg.match(stmts[0]):
+                    pos = stmts[1].find('=') + 1
+                    arr = stmts[1][pos:]
+                    js = json.loads(arr)
 
-        if not frame_url:
-            return None
+                    off = stmts[2].rfind(' ')
+                    sub = int(stmts[2][off + 1: -1])
 
-        post_data = {'fuck_you': '', 'confirm': 'Click+Here+to+Watch+Free%21%21'}
-        res = requests.post(frame_url, data=post_data)
-        if res:
-            matches = episode_re.findall(res.text)
-            if matches:
-                return find_best_quality(matches)
-    return None
+                    frame_text = ''.join([chr(int(re.sub(r'\D', '', str(base64.b64decode(x)))) - sub) for x in js])
+                    frame_soup = bs4.BeautifulSoup(frame_text, 'lxml')
+                    src = frame_soup.select_one('iframe')['src']
+
+                    video_urls.append(base_url + src)
+
+        for u in video_urls:
+            res = requests.get(u)
+            if res:
+                matches = episode_re.findall(res.text)
+                if matches:
+                    return find_best_quality(matches)
 
 
 def load():
@@ -122,6 +132,7 @@ def load():
     series['Movies'] = ('Movies', urls['Movies'])
     series['OVA'] = ('OVA', urls['OVA'])
     loaded = True
+    
 
 if __name__ == '__main__':
     load()
