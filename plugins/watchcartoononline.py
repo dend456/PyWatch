@@ -132,7 +132,7 @@ def load():
     series['Movies'] = ('Movies', urls['Movies'])
     series['OVA'] = ('OVA', urls['OVA'])
     loaded = True
-    
+
 
 if __name__ == '__main__':
     load()
