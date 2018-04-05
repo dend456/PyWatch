@@ -50,7 +50,7 @@ import functools
 from inspect import getargspec
 
 __version__ = "N/A"
-build_date = "Fri Oct  7 12:04:48 2016"
+build_date = "Fri Oct  7 12:04:48 2015"
 
 # The libvlc doc states that filenames are expected to be in UTF8, do
 # not rely on sys.getfilesystemencoding() which will be confused,

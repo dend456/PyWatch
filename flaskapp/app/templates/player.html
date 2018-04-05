@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>PyWatch</title>
+    </head>
+    <body>
+        <style>
+            video
+            {
+                width: auto;
+                height: auto;
+            }
+        </style>
+        <video id='video_player' controls autoplay>
+            <source src='' type='video/mp4'>
+            Your browser does not support HTML5 video.
+        </video>
+        <div id="debugDiv">
+            <p>asdas</p>
+        </div>
+        <script>
+            window.onerror = function (msg, url, lineNo, columnNo, error) {
+                document.getElementById('debugDiv').append(msg);
+              return false;
+            }
+
+
+            var ws = new WebSocket("ws://192.168.0.153:5001/");
+            var vid = document.getElementById('video_player');
+
+            vid.ontimeupdate = function()
+            {
+                ws.send('time:' + vid.currentTime + '/' + vid.duration);
+            };
+
+            vid.onvolumechange = function()
+            {
+                ws.send('vol:' + vid.volume);
+            };
+
+            vid.onpause = function()
+            {
+                ws.send('pause');
+            };
+
+            ws.addEventListener('message', function (event) {
+                var msg = event.data;
+                console.log(msg);
+
+                var command = '';
+                var data = '';
+                var sep = msg.indexOf(':');
+                if(sep == -1)
+                {
+                    command = msg;
+                }
+                else
+                {
+                    command = msg.substring(0, sep);
+                    data = msg.substring(sep + 1, msg.length)
+                }
+
+                switch(command)
+                {
+                    case "play":
+                    {
+                        vid.src = data;
+                        break;
+                    }
+                    case "vol":
+                    {
+                        vid.volume = parseFloat(data);
+                        break;
+                    }
+                    case "speed":
+                    {
+                        vid.playbackRate = parseFloat(data);
+                        break;
+                    }
+                    case "offset":
+                    {
+                        vid.currentTime += parseInt(data);
+                        break;
+                    }
+                    case "pause":
+                    {
+                        vid.pause();
+                        break;
+                    }
+                    case "unpause":
+                    {
+                        vid.play();
+                        break;
+                    }
+                    case "toggle_pause":
+                    {
+                        if(vid.paused)
+                        {
+                            vid.play();
+                        }
+                        else
+                        {
+                            vid.pause();
+                        }
+                        break;
+                    }
+                    case "replay":
+                    {
+                        vid.src = vid.src;
+                        break;
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
