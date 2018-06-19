@@ -15,10 +15,6 @@ class Guide:
         self._selected_episode = None
         self._selected_category = None
         self._filter = ''
-        if self.plugins:
-            self._selected_plugin = self.plugins[0]
-            self._selected_plugin.load()
-            self._selected_category = self.selected_plugin.categories[0]
 
     @property
     def selected_plugin(self):
@@ -65,13 +61,13 @@ class Guide:
         self._filter = val.lower()
 
     def reload_plugins(self):
-        self.plugins = []
+        self.plugins = [None]
         files = glob.glob('plugins/*.py')
         for file in files:
             mod_name, ext = os.path.splitext(os.path.split(file)[-1])
             p = importlib.import_module('plugins.' + mod_name)
             self.plugins.append(p)
-        self.plugin_names = [p.display_name for p in self.plugins]
+        self.plugin_names = [''] + [p.display_name for p in self.plugins[1:]]
 
     def get_categories(self):
         if self.selected_plugin:
@@ -92,6 +88,7 @@ class Guide:
         if self._selected_plugin:
             return self._selected_plugin.get_video_url(self._selected_category, self._selected_series, self._selected_episode)
         return None
+
 
 if __name__ == "__main__":
     g = Guide()

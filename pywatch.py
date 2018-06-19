@@ -1,7 +1,7 @@
 #! /usr/bin/env python3.6
 
 import sys
-import os.path
+import configparser
 import argparse
 import ipaddress
 import asyncio
@@ -31,8 +31,9 @@ class VideoPlayer:
 
 
 class ControlsDialog(QtGui.QDialog):
-    def __init__(self, video_player, controls, server_ip=None, server_port=None):
+    def __init__(self, video_player, controls, config, server_ip=None, server_port=None):
         QtGui.QDialog.__init__(self)
+        self.config = config
         self.server_ip = server_ip
         self.server_port = server_port
         self.sock = None
@@ -41,12 +42,11 @@ class ControlsDialog(QtGui.QDialog):
         self.video_player = video_player
         self.controls = controls
         self.guide = Guide()
+        self.remote_vals = self.load_remote_vals()
+        self.remote = None
         self.setup_ui()
         self.prev_volume = 100
         self.muted = False
-        self.remote_vals = self.load_remote_vals()
-        self.remote = None
-        self.remote_refresh_clicked()
         self.setFixedSize(self.size())
 
         if server_ip:
@@ -84,7 +84,6 @@ class ControlsDialog(QtGui.QDialog):
             vol = int(float(data) * 100)
             self.controls.volume_slider.setValue(vol)
 
-
     def on_open(self, cli, serv):
         print('got connection')
 
@@ -103,12 +102,37 @@ class ControlsDialog(QtGui.QDialog):
 
     def setup_ui(self):
         self.controls.setupUi(self)
+        self.remote_refresh_clicked()
         self.controls.host_box.addItems(self.guide.plugin_names)
-        if self.guide.selected_plugin:
+
+        plugin = self.config.get('PyWatch', 'host', fallback=None)
+        if plugin:
+            self.controls.host_box.setCurrentIndex(self.controls.host_box.findText(plugin))
             self.controls.type_box.clear()
             self.controls.type_box.addItems(self.guide.get_categories())
 
+            typ = self.config.get('PyWatch', 'type', fallback=None)
+            if typ:
+                self.controls.type_box.setCurrentIndex(self.controls.type_box.findText(typ))
+                series = self.config.get('PyWatch', 'series', fallback=None)
+                if series:
+                    self.controls.series_box.setCurrentIndex(self.controls.series_box.findText(series))
+                epi = self.config.get('PyWatch', 'episode', fallback=None)
+                if epi:
+                    self.controls.episode_box.setCurrentIndex(self.controls.episode_box.findText(epi))
+
         if self.video_player:
+            vol = int(self.config.get('PyWatch', 'volume', fallback=100))
+            speed = (float(self.config.get('PyWatch', 'speed', fallback=1.1)) * 100) // 2
+            remote = self.config.get('PyWatch', 'remote', fallback=None)
+
+            self.controls.volume_slider.setValue(vol)
+            self.volume_changed(vol)
+            self.controls.speed_slider.setValue(speed)
+            self.speed_changed(speed)
+            if remote:
+                self.controls.remote_box.setCurrentIndex(self.controls.remote_box.findText(remote))
+
             self.timer = QtCore.QTimer(self)
             self.timer.setInterval(200)
             self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.update_ui)
@@ -260,6 +284,8 @@ class ControlsDialog(QtGui.QDialog):
                 self.video_player.pause(False)
 
     def host_box_changed(self, index):
+        if index == 0:
+            return
         self.guide.selected_plugin = index
         self.controls.type_box.clear()
         self.controls.type_box.addItems(self.guide.get_categories())
@@ -342,15 +368,24 @@ class ControlsDialog(QtGui.QDialog):
                 else:
                     self.next_episode_button_clicked()
 
+        self.config['PyWatch']['type'] = self.controls.type_box.currentText()
+        self.config['PyWatch']['host'] = self.controls.host_box.currentText()
+        self.config['PyWatch']['series'] = self.controls.series_box.currentText()
+        self.config['PyWatch']['episode'] = self.controls.episode_box.currentText()
+        self.config['PyWatch']['remote'] = self.controls.remote_box.currentText()
+        self.config['PyWatch']['volume'] = str(self.controls.volume_slider.value())
+        self.config['PyWatch']['speed'] = str((self.controls.speed_slider.value() * 2) / 100)
+
 
 class Watcher(QtGui.QMainWindow):
-    def __init__(self, master=None):
+    def __init__(self, config, master=None):
         QtGui.QMainWindow.__init__(self, master)
         self.widget = None
         self.vboxlayout = None
         self.controls_dialog = None
         self.controls = None
         self.video_player = None
+        self.config = config
 
         self.setup_ui()
         self.setup_control_window()
@@ -359,7 +394,7 @@ class Watcher(QtGui.QMainWindow):
 
     def setup_control_window(self):
         self.controls = Ui_ControlsDialog()
-        self.controls_dialog = ControlsDialog(self.video_player, self.controls)
+        self.controls_dialog = ControlsDialog(self.video_player, self.controls, self.config)
         self.controls_dialog.setWindowFlags(QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowMinimizeButtonHint)
 
     def setup_ui(self):
@@ -403,21 +438,32 @@ def main():
     parser.add_argument('-p', dest='port', type=int, default=5001, help='Port to bind server to. Default = 5001')
     args = parser.parse_args()
 
+    conf = configparser.ConfigParser()
+    conf.read('pywatch.ini')
+    if 'PyWatch' not in conf:
+        conf.add_section('PyWatch')
+
     if not args.ip:
         app = QtGui.QApplication(sys.argv)
-        w = Watcher()
+        w = Watcher(conf)
         w.resize(800, 600)
         w.show()
-        sys.exit(app.exec_())
+        ex = app.exec_()
+        with open('pywatch.ini', 'w') as out:
+            conf.write(out)
+        sys.exit(ex)
     else:
         try:
             ip = str(ipaddress.ip_address(args.ip))
 
             app = QtGui.QApplication(sys.argv)
             controls = Ui_ControlsDialog()
-            controls_dialog = ControlsDialog(None, controls, ip, args.port)
+            controls_dialog = ControlsDialog(None, controls, conf, ip, args.port)
             controls_dialog.show()
-            sys.exit(app.exec_())
+            ex = app.exec_()
+            with open('pywatch.ini', 'w') as out:
+                conf.write(out)
+            sys.exit(ex)
 
         except ValueError:
             print('Error: Invalid IP address.')
