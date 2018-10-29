@@ -8,5 +8,5 @@ PyExecJS==1.4.0
 pyparsing==2.2.0
 PyQt4==4.11.4
 pyserial==3.3
-requests==2.13.0
+requests>=2.20.0
 six==1.10.0
